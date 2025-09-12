@@ -1,17 +1,27 @@
+#!/bin/bash
+
+# Форматирование разделов
 mkfs.fat -F32 /dev/nvme0n1p6
 mkfs.ext4 /dev/nvme0n1p9
 
+# Монтирование
 mount /dev/nvme0n1p9 /mnt
-mount --mkdir /dev/nvme0n1p6 /mnt/boot/efi
+mkdir -p /mnt/boot/efi  # Создаем директорию перед монтированием
+mount /dev/nvme0n1p6 /mnt/boot/efi
 
+# Установка базовой системы
 pacstrap -K /mnt base linux-zen linux-zen-headers linux-firmware
+
+# Генерация fstab
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt
 
-# Установка необходимых пакетов
-pacman -S nano sudo grub efibootmgr networkmanager
+# Выполняем команды в chroot через arch-chroot
+arch-chroot /mnt << 'EOF'
 
-# Настройка времени (замените регион)
+# Установка пакетов
+pacman -S --noconfirm nano sudo grub efibootmgr networkmanager
+
+# Настройка времени
 ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 hwclock --systohc
 
@@ -21,24 +31,29 @@ locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 # Пароль root
+echo "Установка пароля root:"
 passwd
 
 # Создание пользователя
 useradd -m -G wheel -s /bin/bash hz
+echo "Установка пароля пользователя hz:"
 passwd hz
 
 # Настройка sudo
-EDITOR=nano visudo
-# Раскомментируйте строку: %wheel ALL=(ALL:ALL) ALL
+echo "%wheel ALL=(ALL:ALL) ALL" >> /etc/sudoers
 
-
+# Установка GRUB
 grub-install --target=x86_64-efi --efi-directory=/boot/efi
 grub-mkconfig -o /boot/grub/grub.cfg
 
+# Включение NetworkManager
 systemctl enable NetworkManager
 
-pacman -S mesa vulkan-intel intel-compute-runtime intel-media-driver libva-utils
+# Установка графических драйверов
+pacman -S --noconfirm mesa vulkan-intel intel-compute-runtime intel-media-driver libva-utils
 
-exit
+EOF
+
+# Размонтирование и перезагрузка
 umount -R /mnt
 reboot
