@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Запрос информации у пользователя
-read -p "Введите имя компьютера (hostname): " hostname
-read -sp "Введите пароль для root: " root_password
+read -p "Enter PC name (hostname): " hostname
+read -sp "Enter root password: " root_password
 echo
-read -p "Введите имя пользователя: " username
-read -sp "Введите пароль для пользователя: " user_password
+read -p "Enter username: " username
+read -sp "Enter user's password: " user_password
 echo
 
 # Форматирование разделов
