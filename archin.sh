@@ -17,6 +17,12 @@ mount /dev/nvme0n1p7 /mnt
 mkdir -p /mnt/boot/efi
 mount /dev/nvme0n1p6 /mnt/boot/efi
 
+
+pacman-key --init
+pacman-key --populate archlinux
+pacman -Sy archlinux-keyring
+
+
 # Установка базовой системы
 pacstrap -K /mnt base linux-zen linux-zen-headers linux-firmware
 
